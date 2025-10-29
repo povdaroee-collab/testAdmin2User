@@ -302,9 +302,7 @@ function renderHistoryList(snapshot, container, placeholder, type) {
     }
 }
 
-// --- មុខងារ​បង្កើត HTML សម្រាប់ Card នីមួយៗ (ដូចមុន) ---
-// --- មុខងារ​បង្កើត HTML សម្រាប់ Card នីមួយៗ (បានកែសម្រួលឲ្យស្អាត) ---
-// --- មុខងារ​បង្កើត HTML សម្រាប់ Card នីមួយៗ (ជួសជុល "N/A" តែរក្សារចនាបទដើម) ---
+// --- 🔥 មុខងារ​បង្កើត HTML សម្រាប់ Card នីមួយៗ (ជួសជុល "N/A" តែរក្សារចនាបទដើម) 🔥 ---
 function renderAdminCard(request, type) {
     if (!request || !request.requestId) return '';
 
@@ -366,6 +364,8 @@ function renderAdminCard(request, type) {
         </div>
     `;
 }
+// --- 🔥 ចប់ការកែសម្រួល Card 🔥 ---
+
 
 // --- មុខងារ​សម្រាប់ Filter Modal (ដូចមុន) ---
 function openFilterModal() {
@@ -459,7 +459,7 @@ async function handleDownload(type) { // type can be 'leave' or 'out'
                 where("decisionAt", ">=", startTimestamp),
                 where("decisionAt", "<", endTimestamp)
             );
-            fileNameSuffix = `_${startDateStr}_to_${endDateStr}`;
+          _fileNameSuffix = `_${startDateStr}_to_${endDateStr}`;
 
         } else if (downloadType === 'month') {
             const month = parseInt(downloadSelectMonth.value);
@@ -479,7 +479,7 @@ async function handleDownload(type) { // type can be 'leave' or 'out'
 
             // Query based on 'decisionAt' for approved requests within the selected month/year
             q = query(
-                collection(db, collectionPath),
+    _collection(db, collectionPath),
                 where("status", "==", "approved"),
                 where("decisionAt", ">=", startTimestamp),
                 where("decisionAt", "<", endTimestamp)
@@ -532,7 +532,7 @@ async function handleDownload(type) { // type can be 'leave' or 'out'
             if (type === 'out') {
                 formattedData["ស្ថានភាពចូលវិញ"] = data.returnStatus === 'បានចូលមកវិញ' ? 'បានចូលមកវិញ' : (data.status === 'approved' ? 'កំពុងនៅក្រៅ' : '');
                 formattedData["ម៉ោងចូលវិញ"] = data.returnedAt || '';
-    _x000D_       }
+            }
             dataToExport.push(formattedData);
         });
 
@@ -600,7 +600,7 @@ async function handleDownload(type) { // type can be 'leave' or 'out'
         // --- *** LOGGING END *** ---
         XLSX.writeFile(wb, fileName);
         // --- *** LOGGING START *** ---
-        console.log("XLSX.writeFile executed.");
+  _console.log("XLSX.writeFile executed.");
         // --- *** LOGGING END *** ---
 
 
@@ -682,6 +682,7 @@ function populateMonthSelect(selectElement, defaultValue) {
     selectElement.value = defaultValue; // Set default
 }
 
+// --- 🔥 ជួសជុលកំហុស "soption" នៅទីនេះ 🔥 ---
 function populateYearSelect(selectElement, defaultValue) {
     const currentYr = new Date().getFullYear();
     const startYear = currentYr - 2; // Show previous 2 years
@@ -696,6 +697,7 @@ function populateYearSelect(selectElement, defaultValue) {
      addYearOptionIfNeeded(selectElement, defaultValue); // Make sure default year exists
     selectElement.value = defaultValue; // Set default
 }
+// --- 🔥 ចប់ការជួសជុល 🔥 ---
 
 function addYearOptionIfNeeded(selectElement, year) {
      let yearExists = false;
