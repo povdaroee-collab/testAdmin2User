@@ -31,6 +31,13 @@ let downloadStartDate, downloadEndDate, downloadSelectMonth, downloadSelectYear;
 let downloadLeaveBtn, downloadOutBtn;
 let isDownloading = false; // Flag to prevent multiple downloads
 
+// --- 🔥 Global Variables ថ្មី​សម្រាប់ Google Sheet Sync 🔥 ---
+// 👎👎👎 សូមដាក់ URL របស់អ្នកនៅទីនេះ! 👎👎👎
+const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby0X0l9buZPJ8-DC1Y4s3w0LwvGtbwRjWHEjsqDUb64-lMXpXp2ioRM4HSOxs4CcBQCXg/exec'; // 👈 ប្តូរ URL នេះ!
+let syncedRequestIds = new Set(); // Cache ដើម្បីកុំឲ្យ sync ស្ទួន
+// --- 🔥 จบส่วนใหม่ 🔥 ---
+
+
 let currentFilterMonth, currentFilterYear;
 let leaveUnsubscribe = null;
 let outUnsubscribe = null;
@@ -186,6 +193,11 @@ function showTab(tabName) {
 function fetchFilteredData() {
     console.log(`Fetching display data for: ${currentFilterMonth + 1}/${currentFilterYear}`);
 
+    // --- 🔥 កែសម្រួលនៅទីនេះ 🔥 ---
+    // សម្អាត Cache ពេលទាញទិន្នន័យថ្មី
+    syncedRequestIds.clear(); 
+    // --- 🔥 ចប់ការកែសម្រួល 🔥 ---
+
     // បង្ហាញ Loading
     loadingIndicator.classList.remove('hidden');
     leavePlaceholder.classList.add('hidden');
@@ -271,6 +283,20 @@ function renderHistoryList(snapshot, container, placeholder, type) {
         });
 
         requests.forEach(request => {
+            
+            // --- 🔥 កែសម្រួលនៅទីនេះ 🔥 ---
+            // ពិនិត្យមើលថា Request នេះមិនទាន់បាន Sync ពីមុន
+            if (request.requestId && !syncedRequestIds.has(request.requestId)) {
+                
+                // ហៅមុខងារ Sync ទៅ Google Sheet
+                syncToGoogleSheet(request, type);
+                
+                // បញ្ចូល ID ទៅក្នុង Cache
+                syncedRequestIds.add(request.requestId);
+            }
+            // --- 🔥 ចប់ការកែសម្រួល 🔥 ---
+
+            // បង្កើត Card (ទុកដដែល)
             container.innerHTML += renderAdminCard(request, type);
         });
     }
@@ -495,7 +521,7 @@ async function handleDownload(type) { // type can be 'leave' or 'out'
             if (type === 'out') {
                 formattedData["ស្ថានភាពចូលវិញ"] = data.returnStatus === 'បានចូលមកវិញ' ? 'បានចូលមកវិញ' : (data.status === 'approved' ? 'កំពុងនៅក្រៅ' : '');
                 formattedData["ម៉ោងចូលវិញ"] = data.returnedAt || '';
-            }
+    _x000D_       }
             dataToExport.push(formattedData);
         });
 
@@ -595,6 +621,43 @@ async function handleDownload(type) { // type can be 'leave' or 'out'
 }
 
 
+// --- 🔥 មុខងារ​ថ្មី​សម្រាប់ Sync ទៅ Google Sheet 🔥 ---
+async function syncToGoogleSheet(request, type) {
+  if (!request || !request.requestId) return;
+  
+  // ពិនិត្យ URL
+  if (GAS_WEB_APP_URL.includes('YOUR_DEPLOYED_URL_HERE') || GAS_WEB_APP_URL.length < 50) {
+    console.warn("Google Apps Script URL (GAS_WEB_APP_URL) is not set. Skipping sync.");
+    return;
+  }
+
+  // បង្កើត Payload ដើម្បីส่ง
+  const payload = {
+    type: type, // 'leave' or 'out'
+    request: request // បញ្ជូន object ទាំងមូល
+  };
+
+  try {
+    // ប្រើ "fire-and-forget" (បាញ់ហើយមិនរង់ចាំ)
+    fetch(GAS_WEB_APP_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8', // GAS ត្រូវការ text/plain
+      },
+      mode: 'no-cors' // ប្រើ no-cors ដើម្បីជៀសវាងបញ្ហា CORS ពេលបាញ់ទៅ GAS
+    });
+    
+    // console.log(`Syncing request ${request.requestId} to Google Sheet...`);
+
+  } catch (error) {
+    // ទោះបីជា no-cors, ក៏ fetch អាច fail ដែរ (ឧ. network error)
+    console.error(`Error initiating sync for ${request.requestId}:`, error);
+  }
+}
+// --- 🔥 จบส่วนใหม่ 🔥 ---
+
+
 // --- Helper Functions for Populating Selects ---
 function populateMonthSelect(selectElement, defaultValue) {
     const months = ["មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"];
@@ -616,7 +679,7 @@ function populateYearSelect(selectElement, defaultValue) {
     for (let year = startYear; year <= endYear; year++) {
          const option = document.createElement('option');
          option.value = year;
-         option.text = year;
+        soption.text = year;
          selectElement.add(option);
     }
      addYearOptionIfNeeded(selectElement, defaultValue); // Make sure default year exists
@@ -643,4 +706,3 @@ function addYearOptionIfNeeded(selectElement, year) {
             .forEach(option => selectElement.add(option));
     }
 }
-
