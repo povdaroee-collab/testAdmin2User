@@ -235,6 +235,7 @@ function fetchFilteredData() {
         });
 
         // --- បង្កើត Query សម្រាប់ ច្បាប់ចេញក្រៅ (onSnapshot) ---
+section
         const outQuery = query(
             collection(db, outRequestsCollectionPath),
             where("status", "==", "approved"),
@@ -426,7 +427,7 @@ async function handleDownload(type) { // type can be 'leave' or 'out'
             // --- *** LOGGING END *** ---
 
             // Query based on 'decisionAt' for approved requests within the date range
-            q = query(
+      _       q = query(
                 collection(db, collectionPath),
                 where("status", "==", "approved"),
                 where("decisionAt", ">=", startTimestamp),
@@ -455,7 +456,7 @@ async function handleDownload(type) { // type can be 'leave' or 'out'
                 collection(db, collectionPath),
                 where("status", "==", "approved"),
                 where("decisionAt", ">=", startTimestamp),
-                 where("decisionAt", "<", endTimestamp)
+                where("decisionAt", "<", endTimestamp) // <-- (កែសម្រួល) ខ្ញុំបានលុប '_' ចេញពីទីនេះហើយ
             );
             fileNameSuffix = `_${String(month + 1).padStart(2, '0')}-${year}`;
 
@@ -583,7 +584,7 @@ async function handleDownload(type) { // type can be 'leave' or 'out'
 
         // បិទ Modal បន្ទាប់ពីជោគជ័យ (ស្រេចចិត្ត)
         setTimeout(() => {
-           // closeDownloadModal(); // អ្នកអាច uncomment វិញ បើចង់ឲ្យវាបិទស្វ័យប្រវត្តិ
+          s  // closeDownloadModal(); // អ្នកអាច uncomment វិញ បើចង់ឲ្យវាបិទស្វ័យប្រវត្តិ
            console.log("Download process finished successfully.");
         }, 1500); // Reduced timeout for faster feedback
 
@@ -627,7 +628,7 @@ function populateYearSelect(selectElement, defaultValue) {
          const option = document.createElement('option');
          option.value = year;
          option.text = year;
-         selectElement.add(option); // <-- ខ្ញុំបានលុប "S" ចេញពីទីនេះហើយ
+         selectElement.add(option); // <-- (កែសម្រួល) ខ្ញុំបានលុប "S" ចេញហើយ
     }
      addYearOptionIfNeeded(selectElement, defaultValue); // Make sure default year exists
     selectElement.value = defaultValue; // Set default
