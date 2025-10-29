@@ -627,7 +627,7 @@ function populateYearSelect(selectElement, defaultValue) {
          const option = document.createElement('option');
          option.value = year;
          option.text = year;
-  S      selectElement.add(option);
+        selectElement.add(option);
     }
      addYearOptionIfNeeded(selectElement, defaultValue); // Make sure default year exists
     selectElement.value = defaultValue; // Set default
