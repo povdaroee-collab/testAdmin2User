@@ -643,4 +643,4 @@ function addYearOptionIfNeeded(selectElement, year) {
             .forEach(option => selectElement.add(option));
     }
 }
-File admin_app.js
+
