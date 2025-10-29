@@ -303,6 +303,7 @@ function renderHistoryList(snapshot, container, placeholder, type) {
 }
 
 // --- 🔥 មុខងារ​បង្កើត Card (រចនាបថទំនើប ថ្មី) 🔥 ---
+// --- 🔥 មុខងារ​បង្កើត Card (រចនាបថទំនើប ថ្មី) 🔥 ---
 function renderAdminCard(request, type) {
     if (!request || !request.requestId) return '';
 
