@@ -302,65 +302,86 @@ function renderHistoryList(snapshot, container, placeholder, type) {
     }
 }
 
-// --- 🔥 មុខងារ​បង្កើត HTML សម្រាប់ Card នីមួយៗ (ជួសជុល "N/A" តែរក្សារចនាបទដើម) 🔥 ---
+// --- 🔥 មុខងារ​បង្កើត Card (រចនាបថទំនើប ថ្មី) 🔥 ---
 function renderAdminCard(request, type) {
     if (!request || !request.requestId) return '';
 
+    // --- 1. រៀបចំទិន្នន័យជាមុន ---
     const dateString = (request.startDate === request.endDate)
         ? request.startDate
         : (request.startDate && request.endDate ? `${request.startDate} ដល់ ${request.endDate}` : 'N/A');
 
     const decisionTimeText = formatFirestoreTimestamp(request.decisionAt, 'HH:mm dd/MM/yyyy');
 
+    // ដំណោះស្រាយសម្រាប់ "N/A" (បើគ្មាន department គឺបង្ហាញទទេ)
+    const departmentHtml = request.department
+        ? `<p class="text-sm text-gray-500">${request.department}</p>`
+        : '';
+
+    // --- 2. ពិនិត្យព័ត៌មាន 'ចេញក្រៅ' (Return Info) ---
     let returnInfo = '';
     if (type === 'out' && request.returnStatus === 'បានចូលមកវិញ') {
         returnInfo = `
-            <div class="mt-3 pt-3 border-t border-dashed border-gray-200">
-                <p class="text-sm font-semibold text-green-700">✔️ បានចូលមកវិញ</p>
-                <p class="text-sm text-gray-600">នៅម៉ោង: ${request.returnedAt || 'N/A'}</p>
+            <div class="mt-4 pt-3 border-t border-dashed border-gray-200">
+                <div class="flex items-center text-green-700">
+                    <i class="fa-solid fa-house-chimney-user fa-fw w-5 text-green-600"></i>
+                    <p class="ml-2 text-sm font-semibold">បានចូលមកវិញ</p>
+                </div>
+                <p class="ml-7 text-sm text-gray-600">នៅម៉ោង: ${request.returnedAt || 'N/A'}</p>
             </div>
         `;
     } else if (type === 'out' && request.status === 'approved' && request.returnStatus !== 'បានចូលមកវិញ') {
          returnInfo = `
-             <div class="mt-3 pt-3 border-t border-dashed border-gray-200">
-                <p class="text-sm font-medium text-orange-600">🚶 កំពុងនៅក្រៅ</p>
+             <div class="mt-4 pt-3 border-t border-dashed border-gray-200">
+                <div class="flex items-center text-orange-700">
+                    <i class="fa-solid fa-person-walking fa-fw w-5 text-orange-600"></i>
+                    <p class="ml-2 text-sm font-medium">🚶 កំពុងនៅក្រៅ</p>
+                </div>
             </div>
         `;
     }
 
-    // --- 🔥 ដំណោះស្រាយ (Solution) 🔥 ---
-    // បង្កើត HTML សម្រាប់ "ផ្នែក" (Department) ដោយស្វ័យប្រវត្តិ
-    // បើមានទិន្នន័យ department វានឹងបង្កើត <p>...</p>
-    // បើមិនមាន វានឹងទទេ ('')
-    const departmentHtml = request.department
-        ? `<p class="text-sm text-gray-500">${request.department}</p>`
-        : ''; 
-    // --- 🔥 ចប់ដំណោះស្រាយ 🔥 ---
-
-
+    // --- 3. បង្កើត Card HTML ចុងក្រោយ ---
     return `
-        <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-4 mb-4">
-                        <div class="flex justify-between items-start">
-                <div>
-                    <p class="font-semibold text-gray-800">${request.name || 'N/A'} (${request.userId || 'N/A'})</p>
-                    ${departmentHtml}                 </div>
-                <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-800">បានយល់ព្រម</span>
+        <div class="bg-white border border-gray-200 rounded-lg shadow-md mb-4 overflow-hidden">
+            
+                        <div class="p-4">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="font-bold text-gray-900 text-lg">${request.name || 'N/A'} (${request.userId || 'N/A'})</p>
+                        ${departmentHtml}                 </div>
+                    <span class="text-xs font-semibold px-3 py-1 rounded-full bg-green-100 text-green-800">បានយល់ព្រម</span>
+                </div>
+            </div>
+
+                        <div class="px-4 pb-4 border-t border-gray-100">
+                <div class="space-y-3 mt-4">
+                    
+                    <div class="flex items-start">
+                        <i class="fa-solid fa-comment-dots fa-fw w-5 mt-1 text-gray-400"></i>
+                        <p class="ml-2 text-gray-700 text-sm"><b>មូលហេតុ:</b> ${request.reason || 'មិនបានបញ្ជាក់'}</p>
+                    </div>
+
+                    <div class="flex items-center">
+                        <i class="fa-solid fa-clock fa-fw w-5 text-gray-400"></i>
+                        <p class="ml-2 text-gray-700 text-sm"><b>រយៈពេល:</b> ${request.duration || 'N/A'}</p>
+                    </div>
+
+                    <div class="flex items-center">
+                        <i class="fa-solid fa-calendar-days fa-fw w-5 text-gray-400"></i>
+                        <p class="ml-2 text-gray-700 text-sm"><b>កាលបរិច្ឆេទ:</b> ${dateString}</p>
+                    </div>
+                </div>
+
+                ${returnInfo}
             </div>
 
-                        <hr class="my-3 border-gray-100">
-
-                        <div class="space-y-1 text-sm">
-                <p><b>រយៈពេល:</b> ${request.duration || 'N/A'}</p>
-                <p><b>កាលបរិច្ឆេទ:</b> ${dateString}</p>
-                <p><b>មូលហេតុ:</b> ${request.reason || 'មិនបានបញ្ជាក់'}</p>
-            </div>
-
-                        <div class="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
-                <p>អនុម័ត: ${decisionTimeText}</p>
-                <p class="mt-1">ID: ${request.requestId}</p>
-            </div>
-
-            ${returnInfo}
+                        <div class="px-4 py-3 bg-gray-50 border-t border-gray-100 rounded-b-lg">
+                <div class="text-xs text-gray-500">
+                    <p>អនុម័ត: ${decisionTimeText}</p>
+                    <p class="mt-1">ID: ${request.requestId}</p>
+                </div>
+            </div>
         </div>
     `;
 }
