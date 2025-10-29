@@ -455,7 +455,7 @@ async function handleDownload(type) { // type can be 'leave' or 'out'
                 collection(db, collectionPath),
                 where("status", "==", "approved"),
                 where("decisionAt", ">=", startTimestamp),
-          _       where("decisionAt", "<", endTimestamp)
+                 where("decisionAt", "<", endTimestamp)
             );
             fileNameSuffix = `_${String(month + 1).padStart(2, '0')}-${year}`;
 
