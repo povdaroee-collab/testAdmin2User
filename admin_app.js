@@ -679,7 +679,7 @@ function populateYearSelect(selectElement, defaultValue) {
     for (let year = startYear; year <= endYear; year++) {
          const option = document.createElement('option');
          option.value = year;
-        soption.text = year;
+         option.text = year; // <-- កែត្រង់នេះ (ពី soption ទៅ option)
          selectElement.add(option);
     }
      addYearOptionIfNeeded(selectElement, defaultValue); // Make sure default year exists
