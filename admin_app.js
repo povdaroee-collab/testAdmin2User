@@ -5,7 +5,7 @@ import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gsta
 import { getFirestore, collection, query, where, onSnapshot, getDocs, Timestamp, setLogLevel, doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // ===== (ថ្មី) បន្ថែម URL របស់ WEB APP របស់អ្នកនៅទីនេះ =====
-const GOOGLE_APP_SCRIPT_URL = "PASTE_YOUR_DEPLOYED_WEB_APP_URL_HERE"; 
+const GOOGLE_APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby0X0l9buZPJ8-DC1Y4s3w0LwvGtbwRjWHEjsqDUb64-lMXpXp2ioRM4HSOxs4CcBQCXg/exec"; 
 // =======================================================
 
 // Enable Firestore debug logging
