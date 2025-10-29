@@ -304,40 +304,16 @@ function renderHistoryList(snapshot, container, placeholder, type) {
 
 // --- មុខងារ​បង្កើត HTML សម្រាប់ Card នីមួយៗ (ដូចមុន) ---
 // --- មុខងារ​បង្កើត HTML សម្រាប់ Card នីមួយៗ (បានកែសម្រួលឲ្យស្អាត) ---
+// --- មុខងារ​បង្កើត HTML សម្រាប់ Card នីមួយៗ (ជួសជុល "N/A" តែរក្សារចនាបទដើម) ---
 function renderAdminCard(request, type) {
     if (!request || !request.requestId) return '';
 
-    // --- 1. រៀបចំទិន្នន័យជាមុន ---
-    const name = request.name || 'N/A';
-    const userId = request.userId || 'N/A';
-    
-    // គណនា dateString (បើគ្មាន វានឹង null)
-    const dateString = (request.startDate === request.endDate)
-        ? request.startDate
-        : (request.startDate && request.endDate ? `${request.startDate} ដល់ ${request.endDate}` : null);
+    const dateString = (request.startDate === request.endDate)
+        ? request.startDate
+        : (request.startDate && request.endDate ? `${request.startDate} ដល់ ${request.endDate}` : 'N/A');
 
-    const decisionTimeText = formatFirestoreTimestamp(request.decisionAt, 'HH:mm dd/MM/yyyy');
+    const decisionTimeText = formatFirestoreTimestamp(request.decisionAt, 'HH:mm dd/MM/yyyy');
 
-    // --- 2. បង្កើត Details HTML (ដោយពិនិត្យទិន្នន័យ) ---
-    let detailsHtml = '';
-    
-    // បង្កើតបន្ទាត់សម្រាប់ 'ផ្នែក' (បើមាន)
-    if (request.department) {
-        detailsHtml += `<p><b>ផ្នែក:</b> ${request.department}</p>`;
-    }
-    // បង្កើតបន្ទាត់សម្រាប់ 'រយៈពេល' (បើមាន)
-    if (request.duration) {
-        detailsHtml += `<p><b>រយៈពេល:</b> ${request.duration}</p>`;
-    }
-    // បង្កើតបន្ទាត់សម្រាប់ 'កាលបរិច្ឆេទ' (បើមាន)
-    if (dateString) {
-        detailsHtml += `<p><b>កាលបរិច្ឆេទ:</b> ${dateString}</p>`;
-    }
-    // បង្កើតបន្ទាត់សម្រាប់ 'មូលហេតុ' (បើមាន ឬ បង្ហាញ 'មិនបានបញ្ជាក់')
-    detailsHtml += `<p><b>មូលហេតុ:</b> ${request.reason || 'មិនបានបញ្ជាក់'}</p>`;
-
-
-    // --- 3. ពិនិត្យព័ត៌មាន 'ចេញក្រៅ' (Return Info) ---
     let returnInfo = '';
     if (type === 'out' && request.returnStatus === 'បានចូលមកវិញ') {
         returnInfo = `
@@ -354,23 +330,34 @@ function renderAdminCard(request, type) {
         `;
     }
 
-    // --- 4. បង្កើត Card HTML ចុងក្រោយ ---
+    // --- 🔥 ដំណោះស្រាយ (Solution) 🔥 ---
+    // បង្កើត HTML សម្រាប់ "ផ្នែក" (Department) ដោយស្វ័យប្រវត្តិ
+    // បើមានទិន្នន័យ department វានឹងបង្កើត <p>...</p>
+    // បើមិនមាន វានឹងទទេ ('')
+    const departmentHtml = request.department
+        ? `<p class="text-sm text-gray-500">${request.department}</p>`
+        : ''; 
+    // --- 🔥 ចប់ដំណោះស្រាយ 🔥 ---
+
+
     return `
         <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-4 mb-4">
-            <div class="flex justify-between items-start">
+                        <div class="flex justify-between items-start">
                 <div>
-                                        <p class="font-semibold text-gray-800">${name} (${userId})</p>
-                </div>
+                    <p class="font-semibold text-gray-800">${request.name || 'N/A'} (${request.userId || 'N/A'})</p>
+                    ${departmentHtml}                 </div>
                 <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-800">បានយល់ព្រម</span>
             </div>
 
-            <hr class="my-3 border-gray-100">
+                        <hr class="my-3 border-gray-100">
 
-                        <div class="space-y-1 text-sm">
-                ${detailsHtml}
+                        <div class="space-y-1 text-sm">
+                <p><b>រយៈពេល:</b> ${request.duration || 'N/A'}</p>
+                <p><b>កាលបរិច្ឆេទ:</b> ${dateString}</p>
+                <p><b>មូលហេតុ:</b> ${request.reason || 'មិនបានបញ្ជាក់'}</p>
             </div>
 
-            <div class="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
+                        <div class="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
                 <p>អនុម័ត: ${decisionTimeText}</p>
                 <p class="mt-1">ID: ${request.requestId}</p>
             </div>
