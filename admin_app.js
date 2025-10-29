@@ -455,7 +455,7 @@ async function handleDownload(type) { // type can be 'leave' or 'out'
                 collection(db, collectionPath),
                 where("status", "==", "approved"),
                 where("decisionAt", ">=", startTimestamp),
-                where("decisionAt", "<", endTimestamp)
+          _       where("decisionAt", "<", endTimestamp)
             );
             fileNameSuffix = `_${String(month + 1).padStart(2, '0')}-${year}`;
 
@@ -627,7 +627,7 @@ function populateYearSelect(selectElement, defaultValue) {
          const option = document.createElement('option');
          option.value = year;
          option.text = year;
-        selectElement.add(option);
+         selectElement.add(option); // <-- ខ្ញុំបានលុប "S" ចេញពីទីនេះហើយ
     }
      addYearOptionIfNeeded(selectElement, defaultValue); // Make sure default year exists
     selectElement.value = defaultValue; // Set default
