@@ -297,6 +297,7 @@ function renderHistoryList(snapshot, container, placeholder, type) {
             // --- 🔥 ចប់ការកែសម្រួល 🔥 ---
 
             // បង្កើត Card (ទុកដដែល)
+          <p class="text-sm text-gray-500">${request.department || 'N/A'}</p>
             container.innerHTML += renderAdminCard(request, type);
         });
     }
