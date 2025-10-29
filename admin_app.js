@@ -1,12 +1,7 @@
 // --- នាំចូល Firebase SDKs ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-// (កែសម្រួល) បន្ថែម doc និង updateDoc
-import { getFirestore, collection, query, where, onSnapshot, getDocs, Timestamp, setLogLevel, doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-// ===== (ថ្មី) បន្ថែម URL របស់ WEB APP របស់អ្នកនៅទីនេះ =====
-const GOOGLE_APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby0X0l9buZPJ8-DC1Y4s3w0LwvGtbwRjWHEjsqDUb64-lMXpXp2ioRM4HSOxs4CcBQCXg/exec"; 
-// =======================================================
+import { getFirestore, collection, query, where, onSnapshot, getDocs, Timestamp, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"; // Added getDocs
 
 // Enable Firestore debug logging
 setLogLevel('debug');
@@ -153,13 +148,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 console.log("Admin App: Firebase Auth state changed. User UID:", user.uid);
-                
-                // ចាប់ផ្តើមទាញទិន្នន័យដំបូង (សម្រាប់បង្ហាញលើអេក្រង់)
+                // ចាប់ផ្តើមទាញទិន្នន័យដំបូង
                 fetchFilteredData();
-
-                // (ថ្មី) ចាប់ផ្តើម Listener សម្រាប់ Sync ទៅ Google Sheet
-                startSyncListeners(); 
-
             } else {
                 console.log("Admin App: No user signed in. Attempting anonymous sign-in...");
                 signInAnonymously(auth).catch(anonError => {
@@ -235,7 +225,6 @@ function fetchFilteredData() {
         });
 
         // --- បង្កើត Query សម្រាប់ ច្បាប់ចេញក្រៅ (onSnapshot) ---
-section
         const outQuery = query(
             collection(db, outRequestsCollectionPath),
             where("status", "==", "approved"),
@@ -427,7 +416,7 @@ async function handleDownload(type) { // type can be 'leave' or 'out'
             // --- *** LOGGING END *** ---
 
             // Query based on 'decisionAt' for approved requests within the date range
-      _       q = query(
+            q = query(
                 collection(db, collectionPath),
                 where("status", "==", "approved"),
                 where("decisionAt", ">=", startTimestamp),
@@ -456,7 +445,7 @@ async function handleDownload(type) { // type can be 'leave' or 'out'
                 collection(db, collectionPath),
                 where("status", "==", "approved"),
                 where("decisionAt", ">=", startTimestamp),
-                where("decisionAt", "<", endTimestamp) // <-- (កែសម្រួល) ខ្ញុំបានលុប '_' ចេញពីទីនេះហើយ
+                where("decisionAt", "<", endTimestamp)
             );
             fileNameSuffix = `_${String(month + 1).padStart(2, '0')}-${year}`;
 
@@ -584,7 +573,7 @@ async function handleDownload(type) { // type can be 'leave' or 'out'
 
         // បិទ Modal បន្ទាប់ពីជោគជ័យ (ស្រេចចិត្ត)
         setTimeout(() => {
-          s  // closeDownloadModal(); // អ្នកអាច uncomment វិញ បើចង់ឲ្យវាបិទស្វ័យប្រវត្តិ
+           // closeDownloadModal(); // អ្នកអាច uncomment វិញ បើចង់ឲ្យវាបិទស្វ័យប្រវត្តិ
            console.log("Download process finished successfully.");
         }, 1500); // Reduced timeout for faster feedback
 
@@ -628,7 +617,7 @@ function populateYearSelect(selectElement, defaultValue) {
          const option = document.createElement('option');
          option.value = year;
          option.text = year;
-         selectElement.add(option); // <-- (កែសម្រួល) ខ្ញុំបានលុប "S" ចេញហើយ
+         selectElement.add(option);
     }
      addYearOptionIfNeeded(selectElement, defaultValue); // Make sure default year exists
     selectElement.value = defaultValue; // Set default
@@ -654,113 +643,4 @@ function addYearOptionIfNeeded(selectElement, year) {
             .forEach(option => selectElement.add(option));
     }
 }
-
-
-// --- (ថ្មី) Google Sheet Sync Functions ---
-
-let leaveSyncUnsubscribe = null;
-let outSyncUnsubscribe = null;
-
-/**
- * ចាប់ផ្តើម Listeners សម្រាប់ Sync ទិន្នន័យទៅ Google Sheets
- * វានឹងស្វែងរកតែច្បាប់ណាដែល "approved" ប៉ុន្តែ "មិនទាន់បាន Sync"
- */
-function startSyncListeners() {
-    console.log("[Sync] Starting background sync listeners...");
-    
-    // បញ្ឈប់ Listener ចាស់ (ប្រសិនបើមាន)
-    if (leaveSyncUnsubscribe) leaveSyncUnsubscribe();
-    if (outSyncUnsubscribe) outSyncUnsubscribe();
-
-    // --- Listener សម្រាប់ LEAVE requests (ច្បាប់ឈប់) ---
-    const leaveSyncQuery = query(
-        collection(db, leaveRequestsCollectionPath),
-        where("status", "==", "approved"),
-        where("isSyncedToSheet", "!=", true) // លក្ខខណ្ឌសំខាន់!
-    );
-    
-    leaveSyncUnsubscribe = onSnapshot(leaveSyncQuery, (snapshot) => {
-        if (snapshot.empty) return; // មិនមានអ្វីត្រូវ Sync
-        console.log(`[Sync] Found ${snapshot.size} new APPROVED LEAVE requests to sync.`);
-        
-        // ធ្វើសមកាលកម្មម្តងមួយៗ
-        snapshot.forEach(doc => {
-            console.log(`[Sync] Processing LEAVE doc: ${doc.id}`);
-            syncDocToGoogleSheet(doc, 'leave');
-        });
-    }, (error) => {
-        console.error("[Sync] Error on LEAVE sync listener:", error);
-    });
-
-    // --- Listener សម្រាប់ OUT requests (ច្បាប់ចេញក្រៅ) ---
-    const outSyncQuery = query(
-        collection(db, outRequestsCollectionPath),
-        where("status", "==", "approved"),
-        where("isSyncedToSheet", "!=", true) // លក្ខខណ្ឌសំខាន់!
-    );
-
-    outSyncUnsubscribe = onSnapshot(outSyncQuery, (snapshot) => {
-        if (snapshot.empty) return; // មិនមានអ្វីត្រូវ Sync
-        console.log(`[Sync] Found ${snapshot.size} new APPROVED OUT requests to sync.`);
-        
-        // ធ្វើសមកាលកម្មម្តងមួយៗ
-        snapshot.forEach(doc => {
-            console.log(`[Sync] Processing OUT doc: ${doc.id}`);
-            syncDocToGoogleSheet(doc, 'out');
-        });
-    }, (error) => {
-        console.error("[Sync] Error on OUT sync listener:", error);
-    });
-}
-
-/**
- * ផ្ញើឯកសារមួយទៅ Google Apps Script ហើយ Update ទៅ Firebase វិញ
- * @param {DocumentSnapshot} docToSync ឯកសារពី Firestore
- * @param {'leave' | 'out'} type ប្រភេទច្បាប់
- */
-async function syncDocToGoogleSheet(docToSync, type) {
-    const docId = docToSync.id;
-    const docData = docToSync.data();
-    
-    if (!GOOGLE_APP_SCRIPT_URL || GOOGLE_APP_SCRIPT_URL === "PASTE_YOUR_DEPLOYED_WEB_APP_URL_HERE") {
-        console.error(`[Sync] Aborting sync for ${docId}. GOOGLE_APP_SCRIPT_URL is not set.`);
-        return;
-    }
-
-    const payload = {
-        type: type,
-        payload: docData
-    };
-    
-    try {
-        console.log(`[Sync] Attempting to send ${docId} to GAS...`);
-        
-        // 1. ផ្ញើទិន្នន័យទៅ Google Apps Script
-        // យើងប្រើ 'mode: no-cors' ព្រោះ GAS មិនផ្ញើ CORS headers មកវិញ
-        // នេះគឺជាការ "Fire-and-forget" - យើងផ្ញើហើយសន្មតថាវាជោគជ័យ
-        await fetch(GOOGLE_APP_SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors', // សំខាន់ណាស់!
-            cache: 'no-cache',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload),
-            redirect: 'follow'
-        });
-
-        // 2. សន្មតថាការផ្ញើជោគជ័យ យើង Update ទៅ Firebase វិញ
-        console.log(`[Sync] Sent ${docId} to GAS (fire-and-forget). Now updating Firebase...`);
-        
-        await updateDoc(docToSync.ref, {
-            isSyncedToSheet: true
-        });
-        
-        console.log(`[Sync] Successfully marked ${docId} as synced in Firebase.`);
-
-    } catch (error) {
-        // Error អាចមកពី fetch() ឬ updateDoc()
-        console.error(`[Sync] Error processing doc ${docId}:`, error);
-        // ប្រសិនបើ Error វានឹងព្យាយាមម្តងទៀតនៅពេលក្រោយ (ពេល Snapshot បន្ទាប់)
-    }
-}
+File admin_app.js
